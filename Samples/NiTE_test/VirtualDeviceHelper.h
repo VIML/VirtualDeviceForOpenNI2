@@ -40,6 +40,8 @@ public:
 protected:
 	openni::VideoStream&	m_rVStream;
 	TCallback				m_funcProccess;
+
+	CFrameModifer& operator=(const CFrameModifer&);
 };
 
 openni::VideoStream* CreateVirtualStream( openni::Device& rVDevice, openni::VideoStream& rStream, CFrameModifer::TCallback func )
@@ -54,6 +56,8 @@ openni::VideoStream* CreateVirtualStream( openni::Device& rVDevice, openni::Vide
 			
 			pStream->setProperty( ONI_STREAM_PROPERTY_VERTICAL_FOV,		rStream.getVerticalFieldOfView() );
 			pStream->setProperty( ONI_STREAM_PROPERTY_HORIZONTAL_FOV,	rStream.getHorizontalFieldOfView() );
+			pStream->setProperty( ONI_STREAM_PROPERTY_MIRRORING,			rStream.getMirroringEnabled() );
+			
 			if( rInfo.getSensorType() == openni::SENSOR_DEPTH )
 			{
 				pStream->setProperty( ONI_STREAM_PROPERTY_MIN_VALUE,		rStream.getMinPixelValue() );
@@ -77,6 +81,10 @@ openni::VideoStream* CreateVirtualStream( openni::Device& rVDevice, openni::Vide
 					if( rStream.getProperty( itProp->first, pData, &iSize ) == openni::STATUS_OK )
 					{
 						pStream->setProperty( itProp->first, pData, iSize );
+					}
+					else
+					{
+						std::cerr << "This VideoStream doesn't provide property [" << itProp->first << "], which is required for NiTE2" << std::endl;
 					}
 					delete [] pData;
 				}
