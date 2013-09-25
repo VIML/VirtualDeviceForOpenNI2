@@ -1,9 +1,10 @@
-// Example of Skeleton by NiTE UserTracker, display with OpenCV
-//
-// 		by Heresy
-// 		http://kheresy.wordpress.com
-//
-// version 1.00 @2013/03/08
+/**
+ * This is a simple example to show how to use the virtual device.
+ * This sample will open an existed real device, read the depth frame with listener,
+ * then copy to the virtual device.
+ *
+ * http://viml.nchc.org.tw/home/
+ */
 
 // STL Header
 #include <iostream>
@@ -16,13 +17,13 @@
 // NiTE Header
 #include <NiTE.h>
 
-#include "VirtualDevice.h"
+#include "VirtualDeviceHelper.h"
 
 // namespace
 using namespace std;
 using namespace nite;
 
-int main( int argc, char **argv )
+int main( int, char** )
 {
 	openni::OpenNI::initialize();
 	openni::Device mDevice;
@@ -43,13 +44,18 @@ int main( int argc, char **argv )
 		{
 			for( int x = 0; x < rF2.width; ++ x )
 			{
-				//if( x % 200 )
-				pImg2[ x + y * rF2.width ] = pImg1[ x + y * rF2.width ];
+				int idx = x + y * rF2.width;
+				const openni::DepthPixel& rDepth = pImg1[ idx ];
+				if( rDepth > 3000 )
+					pImg2[ idx ] = 0;
+				else
+					pImg2[ idx ] = rDepth;
 			}
 		}
 	} );
 
 	vsDepth.start();
+	virDepth->start();
 
 	// Initial NiTE
 	if( NiTE::initialize() != STATUS_OK )
@@ -65,7 +71,6 @@ int main( int argc, char **argv )
 		cerr << "Can't create user tracker" << endl;
 		return -1;
 	}
-	//mUserTracker.setSkeletonSmoothingFactor( 0.1f );
 
 	// create OpenCV Window
 	cv::namedWindow( "User Image",  CV_WINDOW_AUTOSIZE );
@@ -183,7 +188,13 @@ int main( int argc, char **argv )
 
 	// stop
 	mUserTracker.destroy();
+	virDepth->destroy();
+	vsDepth.destroy();
+	mDevice.close();
+	virDevice.close();
+
 	NiTE::shutdown();
+	openni::OpenNI::shutdown();
 
 	return 0;
 }
