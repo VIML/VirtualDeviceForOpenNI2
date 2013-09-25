@@ -59,6 +59,8 @@ public:
 
 protected:
 	openni::VideoStream&	m_rVStream;
+
+	CFrameModifer& operator=(const CFrameModifer&);
 };
 
 int main( int, char** )
@@ -107,12 +109,13 @@ int main( int, char** )
 
 	// create virtual color video stream
 	VideoStream vsVirDepth;
+	CFrameModifer mCopyDepth(vsVirDepth);
 	if( vsVirDepth.create( devVirDevice, SENSOR_DEPTH ) == STATUS_OK )
 	{
 		vsVirDepth.setVideoMode( vsRealDepth.getVideoMode() );
 
 		// add new frame listener to real video stream
-		vsRealDepth.addNewFrameListener( new CFrameModifer(vsVirDepth) );
+		vsRealDepth.addNewFrameListener( &mCopyDepth );
 	}
 	else
 	{
@@ -136,6 +139,9 @@ int main( int, char** )
 			cout << pData[ mFrame.getWidth() / 2 + ( mFrame.getHeight() / 2 ) * mFrame.getWidth() ] << endl;
 		}
 	}
+
+	// remove listener
+	vsRealDepth.removeNewFrameListener( &mCopyDepth );
 
 	// stop data generate
 	vsVirDepth.stop();
