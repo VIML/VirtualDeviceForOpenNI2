@@ -6,10 +6,9 @@
  *
  * It also provide a property pool to accept any property.
  *
- * 		by Heresy
- * 		http://kheresy.wordpress.com
+ * http://viml.nchc.org.tw/home/
  *
- * version 0.2 @2013/09/14
+ * version 0.3 @2013/09/14
  */
 
 // C Header
@@ -31,9 +30,8 @@
 #include "Driver/OniDriverAPI.h"
 #include "XnLib.h"
 
-// definition of customized command
-#define GET_VIRTUAL_STREAM_IMAGE	100000
-#define SET_VIRTUAL_STREAM_IMAGE	100001
+// VirtualDevice command
+#include "VirtualDevice.h"
 
 #pragma region inline functions for propertry data
 template<typename _T>

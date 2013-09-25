@@ -12,7 +12,6 @@
 #define GET_VIRTUAL_STREAM_IMAGE	100000
 #define SET_VIRTUAL_STREAM_IMAGE	100001
 
-
 class CFrameModifer : public openni::VideoStream::NewFrameListener
 {
 public:

@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="VirtualDevice.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="VirtualDevice.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DAFA5887-D67D-495F-8FC5-01CD24A70CE5}</ProjectGuid>
     <RootNamespace>TestDevice</RootNamespace>
