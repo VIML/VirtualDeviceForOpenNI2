@@ -81,7 +81,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Include;..\..\ThirdParty\GL;..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENNI2_INCLUDE)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -92,14 +92,14 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>OpenNI2.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir);..\..\ThirdParty\GL;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OPENNI2_LIB);</AdditionalLibraryDirectories>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(NITE2_INCLUDE);D:\Heresy\Engine3\external\package\OpenCV-2.4.5\opencv\build\include;..\..\Include;..\..\ThirdParty\GL;..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENNI2_INCLUDE)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -109,8 +109,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glut64.lib;OpenNI2.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir);..\..\ThirdParty\GL;..\..\ThirdParty\GL</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenNI2.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENNI2_LIB64);</AdditionalLibraryDirectories>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
@@ -119,7 +119,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Include;..\..\ThirdParty\GL;..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENNI2_INCLUDE)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -135,7 +135,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>OpenNI2.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir);..\..\ThirdParty\GL;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OPENNI2_LIB);</AdditionalLibraryDirectories>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
@@ -144,7 +144,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(NITE2_INCLUDE);D:\Heresy\Engine3\external\package\OpenCV-2.4.5\opencv\build\include;..\..\Include;..\..\ThirdParty\GL;..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENNI2_INCLUDE)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -159,21 +159,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>OpenNI2.lib;NiTE2.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir);..\..\ThirdParty\GL;..\..\ThirdParty\GL</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenNI2.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENNI2_LIB64);</AdditionalLibraryDirectories>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Source\Core\OpenNI.vcxproj">
-      <Project>{72d595bb-8c52-449b-91db-0e9f6aeaf53a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Source\Drivers\VirtualDevice\VirtualDevice.vcxproj">
-      <Project>{dafa5887-d67d-495f-8fc5-01cd24a70ce5}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
