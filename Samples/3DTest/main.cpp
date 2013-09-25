@@ -22,35 +22,31 @@ using namespace std;
 using namespace openni;
 
 #pragma region global objects
+
 // global OpenNI object
-Device			g_devDevice;
-VideoStream		g_vsDepthStream;
-VideoStream		g_vsColorStream;
+struct SDevice
+{
+	Device		devDevice;
+	VideoStream	vsDepth;
+	VideoStream	vsColor;
+} g_Device[2];
 
 // global object
 SimpleCamera	g_Camera;
-float*			g_pPoints;
-unsigned char*	g_pColors;
-unsigned int*	g_pIndex;
-unsigned int	g_uWidth, g_uHeight;
-
-// global flag
-bool	g_bHaveColorSensor = true;
 
 #pragma endregion
 
 #pragma region used for Virtual Device
+
 // Virtual Device Header
 #include "..\..\VirtualDevice\VirtualDevice.h"
 
 // The NewFrameListener to set the new frame of virtual device
-template<class _FUNC_>
-class CFrameModifer : public VideoStream::NewFrameListener
+template<typename PIXEL_TYPE>
+class CCopyFrame : public VideoStream::NewFrameListener
 {
 public:
-	CFrameModifer( VideoStream& rStream ) : m_rVStream( rStream )
-	{
-	}
+	CCopyFrame( VideoStream& rStream ) : m_rVStream( rStream ){}
 
 	void onNewFrame( openni::VideoStream& rStream )
 	{
@@ -62,7 +58,20 @@ public:
 			OniFrame* pFrame = NULL;
 			if( m_rVStream.invoke( GET_VIRTUAL_STREAM_IMAGE, pFrame ) == openni::STATUS_OK )
 			{
-				_FUNC_()( mFrame, *pFrame );
+				// type casting
+				const PIXEL_TYPE* pRealData = reinterpret_cast<const PIXEL_TYPE*>( mFrame.getData() );
+				PIXEL_TYPE* pVirData = reinterpret_cast<PIXEL_TYPE*>( pFrame->data );
+
+				// read data from the frame of real sensor, and write to the frame of virtual sensor
+				int w = mFrame.getWidth(), h = mFrame.getHeight();
+				for( int y = 0; y < h; ++ y )
+				{
+					for( int x = 0; x < w; ++ x )
+					{
+						int idx = x + y * w;
+						pVirData[idx] = pRealData[idx];
+					}
+				}
 
 				// write data to form virtual video stream
 				m_rVStream.invoke( SET_VIRTUAL_STREAM_IMAGE, pFrame );
@@ -72,91 +81,38 @@ public:
 
 protected:
 	openni::VideoStream&	m_rVStream;
-};
 
-class FuncCopyDepth
-{
-public:
-	void operator()( const openni::VideoFrameRef& rSource, OniFrame& rTarget )
-	{
-		// type casting
-		const DepthPixel* pRealData = reinterpret_cast<const DepthPixel*>( rSource.getData() );
-		DepthPixel* pVirData = reinterpret_cast<DepthPixel*>( rTarget.data );
-
-		// read data from the frame of real sensor, and write to the frame of virtual sensor
-		for( int y = 0; y < rSource.getHeight(); ++ y )
-		{
-			for( int x = 0; x < rSource.getWidth(); ++ x )
-			{
-				int idx = x + y * rSource.getWidth();
-				pVirData[idx] = pRealData[idx];
-			}
-		}
-	}
-};
-
-class FuncCopyColor
-{
-public:
-	void operator()( const openni::VideoFrameRef& rSource, OniFrame& rTarget )
-	{
-		// type casting
-		const RGB888Pixel* pRealData = reinterpret_cast<const RGB888Pixel*>( rSource.getData() );
-		RGB888Pixel* pVirData = reinterpret_cast<RGB888Pixel*>( rTarget.data );
-
-		// read data from the frame of real sensor, and write to the frame of virtual sensor
-		for( int y = 0; y < rSource.getHeight(); ++ y )
-		{
-			for( int x = 0; x < rSource.getWidth(); ++ x )
-			{
-				int idx = x + y * rSource.getWidth();
-				pVirData[idx] = pRealData[idx];
-			}
-		}
-	}
+	CCopyFrame& operator=(const CCopyFrame&);
 };
 
 #pragma endregion
 
-// function to build triangle
-inline bool BuildTriangle( unsigned int& iIdx, unsigned int v1, unsigned int v2, unsigned int v3, float th = 500.0f )
-{
-	float	z1 = g_pPoints[ 3* v1 + 2 ],
-		z2 = g_pPoints[ 3* v2 + 2 ],
-		z3 = g_pPoints[ 3* v3 + 2 ];
-
-	if( z1 > 0 && z1 > 0 && z3 > 0 )
-	{
-		if( abs( z1 - z2 ) > th ||
-			abs( z1 - z3 ) > th ||
-			abs( z2 - z3 ) > th )
-			return false;
-
-		g_pIndex[iIdx++] = v1;
-		g_pIndex[iIdx++] = v2;
-		g_pIndex[iIdx++] = v3;
-
-		return true;
-	}
-	return false;
-}
-
 #pragma region GLUT callback functions
+
 // glut display function(draw)
 void display()
 {
 	// clear previous screen
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	// get depth frame
+	SDevice& virDevice = g_Device[1];
+
+	// get depth and color frame
 	VideoFrameRef	vfDepthFrame;
-	if( g_vsDepthStream.readFrame( &vfDepthFrame ) == STATUS_OK )
+	VideoFrameRef	vfColorFrame;
+	if( virDevice.vsDepth.readFrame( &vfDepthFrame ) == STATUS_OK && 
+		virDevice.vsColor.readFrame( &vfColorFrame ) == STATUS_OK )
 	{
+		// type cast
 		const DepthPixel* pDepthArray = static_cast<const DepthPixel*>( vfDepthFrame.getData() );
+		const RGB888Pixel* pColorArray = static_cast<const RGB888Pixel*>( vfColorFrame.getData() );
+
 		int iW = vfDepthFrame.getWidth(),
 			iH = vfDepthFrame.getHeight();
 
-		// update data array
+		// draw point cloud
+		glBegin( GL_POINTS );
+		float vPos[3];
 		for( int y = 0; y < iH; ++ y )
 		{
 			for( int x = 0; x < iW; ++ x )
@@ -167,77 +123,20 @@ void display()
 				const DepthPixel& rDepth = pDepthArray[idx];
 				if( rDepth > 0 )
 				{
-					int i = idx * 3;
-					CoordinateConverter::convertDepthToWorld( g_vsDepthStream, x, y, rDepth, &(g_pPoints[i]), &(g_pPoints[i+1]), &(g_pPoints[i+2]) );
+					// read color
+					const RGB888Pixel& rColor = pColorArray[idx];
+
+					// convert coordinate
+					CoordinateConverter::convertDepthToWorld( virDevice.vsDepth, x, y, rDepth, &vPos[0], &vPos[1], &vPos[2] );
+
+					// draw point
+					glColor3ub( rColor.r,  rColor.g, rColor.b );
+					glVertex3fv( vPos );
 				}
 			}
 		}
-		glEnableClientState( GL_VERTEX_ARRAY );
-		glVertexPointer( 3, GL_FLOAT, 0, g_pPoints );
-
-		glEnableClientState( GL_COLOR_ARRAY );
-		// check is color stream is available
-		if( g_bHaveColorSensor )
-		{
-			// get color frame
-			VideoFrameRef	vfColorFrame;
-			if( g_vsColorStream.readFrame( &vfColorFrame ) == STATUS_OK )
-			{
-				glColorPointer( 3, GL_UNSIGNED_BYTE, 0, vfColorFrame.getData() );
-			}
-		}
-		else
-		{
-			// build color by depth
-			for( int y = 0; y < iH; ++ y )
-			{
-				for( int x = 0; x < iW; ++ x )
-				{
-					int idx = x + y * iW;
-					const DepthPixel& rDepth = pDepthArray[idx];
-
-					g_pColors[ 3 * idx     ] = 255 * rDepth / 10000;
-					g_pColors[ 3 * idx + 1 ] = 0;
-					g_pColors[ 3 * idx + 2 ] = 0;
-				}
-			}
-			glColorPointer( 3, GL_UNSIGNED_BYTE, 0, g_pColors );
-		}
-
-		unsigned int uTriangles = 0;
-		for( int y = 0; y < iH - 1; ++ y )
-		{
-			for( int x = 0; x < iW - 1; ++ x )
-			{
-				unsigned int idx = x + y * iW;
-				BuildTriangle( uTriangles, idx, idx + 1, idx + iW );
-				BuildTriangle( uTriangles, idx + 1, idx + iW + 1, idx + iW );
-			}
-		}
-
-		// draw
-		glDrawElements( GL_TRIANGLES, uTriangles, GL_UNSIGNED_INT, g_pIndex );
-
-		glDisableClientState( GL_COLOR_ARRAY );
-		glDisableClientState( GL_VERTEX_ARRAY );
+		glEnd();
 	}
-
-	// Coordinate
-	glLineWidth( 5.0f );
-	glBegin( GL_LINES );
-	glColor3ub( 255, 0, 0 );
-	glVertex3f( 0, 0, 0 );
-	glVertex3f( 100, 0, 0 );
-
-	glColor3ub( 0, 255, 0 );
-	glVertex3f( 0, 0, 0 );
-	glVertex3f( 0, 100, 0 );
-
-	glColor3ub( 0, 0, 255 );
-	glVertex3f( 0, 0, 0 );
-	glVertex3f( 0, 0, 100 );
-	glEnd();
-	glLineWidth( 1.0f );
 
 	// swap buffer
 	glutSwapBuffers();
@@ -250,21 +149,21 @@ void idle()
 }
 
 // glut keyboard function
-void keyboard( unsigned char key, int x, int y )
+void keyboard( unsigned char key, int, int )
 {
 	float fSpeed = 50.0f;
 	switch( key )
 	{
 	case 'q':
-		// release memory
-		delete [] g_pPoints;
-		delete [] g_pColors;
-		delete [] g_pIndex;
-
 		// stop OpenNI
-		g_vsDepthStream.destroy();
-		g_vsColorStream.destroy();
-		g_devDevice.close();
+		g_Device[0].vsDepth.destroy();
+		g_Device[0].vsColor.destroy();
+		g_Device[1].vsDepth.destroy();
+		g_Device[1].vsColor.destroy();
+
+		g_Device[0].devDevice.close();
+		g_Device[1].devDevice.close();
+
 		OpenNI::shutdown();
 		exit( 0 );
 
@@ -311,7 +210,7 @@ void keyboard( unsigned char key, int x, int y )
 }
 
 // glut special keyboard function
-void specialKey( int key, int x, int y )
+void specialKey( int key, int, int )
 {
 	float fRotateScale = 0.01f;
 	switch( key )
@@ -347,17 +246,17 @@ int main( int argc, char** argv )
 	}
 
 	// Open Device
-	if( g_devDevice.open( ANY_DEVICE ) != STATUS_OK )
+	SDevice& phyDevice = g_Device[0];
+	if( phyDevice.devDevice.open( ANY_DEVICE ) != STATUS_OK )
 	{
 		cerr << "Can't Open Device: " << OpenNI::getExtendedError() << endl;
 		return -1;
 	}
 
 	// Create depth stream
-	VideoStream vsDepth;
-	if( g_devDevice.hasSensor( SENSOR_DEPTH ) )
+	if( phyDevice.devDevice.hasSensor( SENSOR_DEPTH ) )
 	{
-		if( vsDepth.create( g_devDevice, SENSOR_DEPTH ) != STATUS_OK )
+		if( phyDevice.vsDepth.create( phyDevice.devDevice, SENSOR_DEPTH ) != STATUS_OK )
 		{
 			cerr << "Can't create depth stream on device: " << OpenNI::getExtendedError() << endl;
 			return -1;
@@ -370,15 +269,14 @@ int main( int argc, char** argv )
 	}
 
 	// Create color stream
-	VideoStream vsColor;
-	if( g_devDevice.hasSensor( SENSOR_COLOR ) )
+	if( phyDevice.devDevice.hasSensor( SENSOR_COLOR ) )
 	{
-		if( vsColor.create( g_devDevice, SENSOR_COLOR ) == STATUS_OK )
+		if( phyDevice.vsColor.create( phyDevice.devDevice, SENSOR_COLOR ) == STATUS_OK )
 		{
 			// image registration
-			if( g_devDevice.isImageRegistrationModeSupported( IMAGE_REGISTRATION_DEPTH_TO_COLOR ) )
+			if( phyDevice.devDevice.isImageRegistrationModeSupported( IMAGE_REGISTRATION_DEPTH_TO_COLOR ) )
 			{
-				g_devDevice.setImageRegistrationMode( IMAGE_REGISTRATION_DEPTH_TO_COLOR );
+				phyDevice.devDevice.setImageRegistrationMode( IMAGE_REGISTRATION_DEPTH_TO_COLOR );
 			}
 			else
 			{
@@ -388,35 +286,34 @@ int main( int argc, char** argv )
 		else
 		{
 			cerr <<  "Can't create color stream on device: " << OpenNI::getExtendedError() << endl;
-			g_bHaveColorSensor = false;
 		}
 	}
 	else
 	{
 		cerr << "This device does not have depth sensor" << endl;
-		g_bHaveColorSensor = false;
+		return -1;
 	}
 	#pragma endregion
 
 	#pragma region Virtual Device
 	// Open Virtual Device
-	Device	virDevice;
-	if( virDevice.open( "\\OpenNI2\\VirtualDevice\\TEST" ) != STATUS_OK )
+	SDevice& virDevice = g_Device[1];
+	if( virDevice.devDevice.open( "\\OpenNI2\\VirtualDevice\\TEST" ) != STATUS_OK )
 	{
 		cerr << "Can't create virtual device: " << OpenNI::getExtendedError() << endl;
 		return -1;
 	}
 
 	// create virtual depth video stream
-	if( g_vsDepthStream.create( virDevice, SENSOR_DEPTH ) == STATUS_OK )
+	if( virDevice.vsDepth.create( virDevice.devDevice, SENSOR_DEPTH ) == STATUS_OK )
 	{
 		// set the FOV for depth, which is required for
-		g_vsDepthStream.setProperty( ONI_STREAM_PROPERTY_VERTICAL_FOV,		vsDepth.getVerticalFieldOfView() );
-		g_vsDepthStream.setProperty( ONI_STREAM_PROPERTY_HORIZONTAL_FOV,	vsDepth.getHorizontalFieldOfView() );
+		virDevice.vsDepth.setProperty( ONI_STREAM_PROPERTY_VERTICAL_FOV,		phyDevice.vsDepth.getVerticalFieldOfView() );
+		virDevice.vsDepth.setProperty( ONI_STREAM_PROPERTY_HORIZONTAL_FOV,	phyDevice.vsDepth.getHorizontalFieldOfView() );
 
-		g_vsDepthStream.setVideoMode( vsDepth.getVideoMode() );
+		virDevice.vsDepth.setVideoMode( phyDevice.vsDepth.getVideoMode() );
 
-		vsDepth.addNewFrameListener( new CFrameModifer<FuncCopyDepth>( g_vsDepthStream ) );
+		phyDevice.vsDepth.addNewFrameListener( new CCopyFrame<DepthPixel>( virDevice.vsDepth ) );
 	}
 	else
 	{
@@ -425,13 +322,10 @@ int main( int argc, char** argv )
 	}
 
 	// create virtual color video stream
-	if( g_bHaveColorSensor )
+	if( virDevice.vsColor.create( virDevice.devDevice, SENSOR_COLOR ) == STATUS_OK )
 	{
-		if( g_vsColorStream.create( virDevice, SENSOR_COLOR ) == STATUS_OK )
-		{
-			g_vsColorStream.setVideoMode( vsColor.getVideoMode() );
-			vsColor.addNewFrameListener( new CFrameModifer<FuncCopyColor>( g_vsColorStream ) );
-		}
+		virDevice.vsColor.setVideoMode( phyDevice.vsColor.getVideoMode() );
+		phyDevice.vsColor.addNewFrameListener( new CCopyFrame<RGB888Pixel>( virDevice.vsColor ) );
 	}
 	#pragma endregion
 
@@ -442,7 +336,7 @@ int main( int argc, char** argv )
 
 	// create glut window
 	glutInitWindowSize( 640, 480 );
-	glutCreateWindow( "OpenNI 3D OpenGL 3D Mesh" );
+	glutCreateWindow( "OpenNI 3D Point Cloud" );
 
 	// set OpenGL environment
 	glEnable( GL_DEPTH_TEST );
@@ -463,22 +357,13 @@ int main( int argc, char** argv )
 	glutSpecialFunc( specialKey );
 	#pragma endregion
 
-	#pragma region allocation memory
-	// allocate memory
-	VideoMode mMode = vsDepth.getVideoMode();
-	int g_uWidth = mMode.getResolutionX(),
-		g_uHeight = mMode.getResolutionY();
-	g_pPoints	= new float[ g_uWidth * g_uHeight * 3 ];
-	g_pColors	= new unsigned char[ g_uWidth * g_uHeight * 3 ];
-	g_pIndex	= new unsigned int[ g_uWidth * g_uHeight * 6 ];
-	#pragma endregion
-
 	// start
-	if( vsDepth.start() == STATUS_OK )
+	if( phyDevice.vsDepth.start() == STATUS_OK )
 	{
-		vsColor.start();
-		g_vsDepthStream.start();
-		g_vsColorStream.start();
+		phyDevice.vsColor.start();
+		virDevice.vsDepth.start();
+		virDevice.vsColor.start();
+
 		glutMainLoop();
 	}
 	else
