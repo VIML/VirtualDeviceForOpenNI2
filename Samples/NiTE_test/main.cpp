@@ -36,10 +36,10 @@ int main( int, char** )
 
 	openni::Device virDevice;
 	virDevice.open( "\\OpenNI2\\VirtualDevice\\Kinect" );
-	cout << openni::OpenNI::getExtendedError() << endl;
 	openni::VideoStream* virDepth = CreateVirtualStream( virDevice, vsDepth, []( const OniFrame& rF1,OniFrame& rF2 ){
-		openni::DepthPixel* pImg1 = (openni::DepthPixel*)rF1.data;
-		openni::DepthPixel* pImg2 = (openni::DepthPixel*)rF2.data;
+		openni::DepthPixel* pImg1 = reinterpret_cast<openni::DepthPixel*>(rF1.data);
+		openni::DepthPixel* pImg2 = reinterpret_cast<openni::DepthPixel*>(rF2.data);
+
 		for( int y = 0; y < rF2.height; ++ y )
 		{
 			for( int x = 0; x < rF2.width; ++ x )

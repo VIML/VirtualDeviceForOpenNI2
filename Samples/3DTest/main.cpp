@@ -104,8 +104,8 @@ void display()
 		virDevice.vsColor.readFrame( &vfColorFrame ) == STATUS_OK )
 	{
 		// type cast
-		const DepthPixel* pDepthArray = static_cast<const DepthPixel*>( vfDepthFrame.getData() );
-		const RGB888Pixel* pColorArray = static_cast<const RGB888Pixel*>( vfColorFrame.getData() );
+		const DepthPixel* pDepthArray = reinterpret_cast<const DepthPixel*>( vfDepthFrame.getData() );
+		const RGB888Pixel* pColorArray = reinterpret_cast<const RGB888Pixel*>( vfColorFrame.getData() );
 
 		int iW = vfDepthFrame.getWidth(),
 			iH = vfDepthFrame.getHeight();
