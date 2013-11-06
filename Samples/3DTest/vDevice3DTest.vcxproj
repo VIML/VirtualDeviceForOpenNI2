@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F9A3BCB8-4BFE-4DA7-A43C-8DAC09DFE03E}</ProjectGuid>
     <RootNamespace>SimpleViewer</RootNamespace>
-    <ProjectName>vDevice3DTest</ProjectName>
+    <ProjectName>DepthToWorldSample</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
