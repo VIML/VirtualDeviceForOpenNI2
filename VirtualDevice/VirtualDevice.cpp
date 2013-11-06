@@ -95,6 +95,7 @@ public:
 		auto itData = m_Data.find( propertyId );
 		if( itData == m_Data.end() )
 		{
+			//std::cout << "request unsaved property: " << propertyId << std::endl;
 			m_Service.errorLoggerAppend( "Required property '%d' not set.", propertyId );
 			return false;
 		}
@@ -208,6 +209,11 @@ public:
 				return ONI_STATUS_OK;
 			break;
 
+		case ONI_STREAM_PROPERTY_CROPPING:
+			if( GetProperty( m_rDriverServices, *pDataSize, data, m_mCropping ) )
+				return ONI_STATUS_OK;
+			break;
+
 		case ONI_STREAM_PROPERTY_STRIDE:
 			{
 				int iStride = int(m_uStride);
@@ -257,6 +263,11 @@ public:
 			}
 			break;
 
+		case ONI_STREAM_PROPERTY_CROPPING:
+			if( SetProperty( m_rDriverServices, dataSize, data, m_mCropping ) )
+				return ONI_STATUS_OK;
+			break;
+
 		default:
 			if( m_Properties.SetProperty( propertyId, data, dataSize ) )
 				return ONI_STATUS_OK;
@@ -276,7 +287,15 @@ public:
 				{
 					*pFrame = CreateeNewFrame();
 					if( pFrame != NULL )
+					{
+						pFrame->croppingEnabled = m_mCropping.enabled;
+						pFrame->cropOriginX = m_mCropping.originX;
+						pFrame->cropOriginY = m_mCropping.originY;
+						pFrame->height = m_mCropping.height;
+						pFrame->width = m_mCropping.width;
+						
 						return ONI_STATUS_OK;
+					}
 				}
 			}
 			else
@@ -360,6 +379,7 @@ protected:
 
 	OniSensorType	m_eSensorType;
 	OniVideoMode	m_mVideoMode;
+	OniCropping		m_mCropping;
 
 	int				m_iFrameId;
 	size_t			m_uDataSize;
