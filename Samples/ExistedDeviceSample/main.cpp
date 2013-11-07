@@ -133,7 +133,7 @@ int main( int, char** )
 	for( int i = 0; i < 100; ++ i )
 	{
 		VideoFrameRef mFrame;
-		if( vsRealDepth.readFrame( &mFrame ) == STATUS_OK )
+		if( vsVirDepth.readFrame( &mFrame ) == STATUS_OK )
 		{
 			const DepthPixel* pData = reinterpret_cast<const DepthPixel*>( mFrame.getData() );
 			cout << pData[ mFrame.getWidth() / 2 + ( mFrame.getHeight() / 2 ) * mFrame.getWidth() ] << endl;
