@@ -2,8 +2,8 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <OpenNI_SDK_Path>D:\Heresy\OpenNI\OpenNI2Dev\</OpenNI_SDK_Path>
-    <OpenCV_Path>D:\Heresy\OpenCV-2.4.6.0\opencv</OpenCV_Path>
+    <OpenNI_SDK_Path>$(SolutionDir)\..\OpenNI2Dev\</OpenNI_SDK_Path>
+    <OpenCV_Path>$(SolutionDir)\..\..\OpenCV-2.4.6.0\opencv</OpenCV_Path>
     <OpenCV_Libs_Debug>opencv_core246d.lib;opencv_highgui246d.lib;opencv_imgproc246d.lib</OpenCV_Libs_Debug>
     <OpenCV_Libs_Release>opencv_core246.lib;opencv_highgui246.lib;opencv_imgproc246.lib</OpenCV_Libs_Release>
   </PropertyGroup>
