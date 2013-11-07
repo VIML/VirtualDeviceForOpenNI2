@@ -40,7 +40,7 @@ XN_THREAD_PROC GenerateDummyFrame( XN_THREAD_PARAM pThreadParam )
 				// type casting
 				DepthPixel* pVirData = reinterpret_cast<DepthPixel*>( pFrame->data );
 
-				// read data from the frame of real sensor, and write to the frame of virtual sensor
+				// Fill dummy data
 				for( int y = 0; y < pFrame->height; ++ y )
 				{
 					for( int x = 0; x < pFrame->width; ++ x )
@@ -53,10 +53,11 @@ XN_THREAD_PROC GenerateDummyFrame( XN_THREAD_PARAM pThreadParam )
 				// write data to form virtual video stream
 				pVStream->invoke( SET_VIRTUAL_STREAM_IMAGE, pFrame );
 
-				// sleep
-				xnOSSleep(33);
 			}
 		}
+
+		// sleep
+		xnOSSleep(33);
 	}
 
 	XN_THREAD_PROC_RETURN(XN_STATUS_OK);
