@@ -288,11 +288,11 @@ public:
 					*pFrame = CreateeNewFrame();
 					if( pFrame != NULL )
 					{
-						pFrame->croppingEnabled = m_mCropping.enabled;
-						pFrame->cropOriginX = m_mCropping.originX;
-						pFrame->cropOriginY = m_mCropping.originY;
-						pFrame->height = m_mCropping.height;
-						pFrame->width = m_mCropping.width;
+						(*pFrame)->croppingEnabled = m_mCropping.enabled;
+						(*pFrame)->cropOriginX = m_mCropping.originX;
+						(*pFrame)->cropOriginY = m_mCropping.originY;
+						(*pFrame)->height = m_mCropping.height;
+						(*pFrame)->width = m_mCropping.width;
 						
 						return ONI_STATUS_OK;
 					}
