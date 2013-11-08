@@ -159,12 +159,20 @@ public:
 		m_bStarted			= false;
 		m_iFrameId			= 0;
 
-		// dummy Video Mode
 		m_bConfigDone				= false;
-		m_mVideoMode.resolutionX	= 1;
-		m_mVideoMode.resolutionY	= 1;
+
+		// default video mode
+		m_mVideoMode.resolutionX	= 320;
+		m_mVideoMode.resolutionY	= 240;
 		m_mVideoMode.fps			= 1;
 		m_mVideoMode.pixelFormat	= ONI_PIXEL_FORMAT_DEPTH_1_MM;
+
+		// default cropping
+		m_mCropping.enabled	= false;
+		m_mCropping.width	= m_mVideoMode.resolutionX;
+		m_mCropping.height	= m_mVideoMode.resolutionY;
+		m_mCropping.originX	= 0;
+		m_mCropping.originY	= 0;
 	}
 
 	/**
