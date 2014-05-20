@@ -8,7 +8,7 @@
  *
  * http://viml.nchc.org.tw/home/
  *
- * version 0.3 @2013/09/14
+ * version 0.4 @2013/09/14
  */
 
 // C Header
@@ -86,6 +86,9 @@ bool SetProperty( oni::driver::DriverServices& rService, size_t uSize, const voi
 class PropertyPool
 {
 public:
+	std::map< int,std::vector<unsigned char> >	m_Data;
+
+public:
 	PropertyPool( oni::driver::DriverServices& rService ) : m_Service( rService )
 	{
 	}
@@ -137,7 +140,6 @@ public:
 	}
 
 protected:
-	std::map< int,std::vector<unsigned char> >	m_Data;
 	oni::driver::DriverServices&				m_Service;
 
 private:
@@ -342,6 +344,12 @@ public:
 		}
 
 		return FALSE;
+	}
+
+	void notifyAllProperties()
+	{
+		for( std::map< int,std::vector<unsigned char> >::iterator itProp = m_Properties.m_Data.begin(); itProp != m_Properties.m_Data.end(); ++ itProp )
+			raisePropertyChanged( itProp->first, itProp->second.data(), itProp->second.size() );
 	}
 
 protected:
