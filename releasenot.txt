@@ -1,2 +1,5 @@
+2014/05/20
+  Fix the bug that no properties of VideoStream when recording
+
 2013/11/008
   First release
