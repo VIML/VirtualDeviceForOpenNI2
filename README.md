@@ -8,6 +8,8 @@ With the virtual device, you can:
 1. create a device in OpenNI, to get the data from sensor with their own SDK
 2. modify the raw data from sensor, let middleware libraries use modified data
 
+
+The pre-compiled binary for windows could be downlod: https://github.com/VIML/VirtualDeviceForOpenNI2/releases
 ---
 
 This is a free and Open Source project for non-commercial use.
