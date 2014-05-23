@@ -19,3 +19,4 @@ email: viml.nchc@gmail.com / charlie.nchc@gmail.com
 ---
 
 More information: https://github.com/VIML/VirtualDeviceForOpenNI2/wiki
+Chinese version: http://viml.nchc.org.tw/blog/paper_info.php?CLASS_ID=1&SUB_ID=1&PAPER_ID=509
