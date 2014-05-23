@@ -10,6 +10,8 @@ With the virtual device, you can:
 
 
 The pre-compiled binary for windows could be downlod: https://github.com/VIML/VirtualDeviceForOpenNI2/releases
+
+
 ---
 
 This is a free and Open Source project for non-commercial use.
