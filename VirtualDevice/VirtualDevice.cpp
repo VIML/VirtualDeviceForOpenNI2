@@ -299,10 +299,13 @@ public:
 					if( pFrame != NULL )
 					{
 						(*pFrame)->croppingEnabled = m_mCropping.enabled;
-						(*pFrame)->cropOriginX = m_mCropping.originX;
-						(*pFrame)->cropOriginY = m_mCropping.originY;
-						(*pFrame)->height = m_mCropping.height;
-						(*pFrame)->width = m_mCropping.width;
+						if (m_mCropping.enabled)
+						{
+							(*pFrame)->cropOriginX = m_mCropping.originX;
+							(*pFrame)->cropOriginY = m_mCropping.originY;
+							(*pFrame)->height = m_mCropping.height;
+							(*pFrame)->width = m_mCropping.width;
+						}
 						
 						return ONI_STATUS_OK;
 					}
@@ -365,7 +368,7 @@ protected:
 			pFrame->height			= m_mVideoMode.resolutionY;
 			pFrame->cropOriginX		= pFrame->cropOriginY = 0;
 			pFrame->croppingEnabled	= FALSE;
-			pFrame->sensorType		= ONI_SENSOR_COLOR;
+			pFrame->sensorType		= m_eSensorType;
 			pFrame->stride			= int( m_uStride );
 
 			time_t	tNow;
